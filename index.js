@@ -29,6 +29,14 @@ const PhoneSchema = new Schema({
 })
 
 const PhoneBook = mongoose.model("phonebook",PhoneSchema);
+
+PhoneSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+      returnedObject.id = returnedObject._id.toString()
+      delete returnedObject._id
+      delete returnedObject.__v
+    }
+  })
 /*
 const phoneBook = new PhoneBook({
     name:"Atakan Tek",
@@ -44,8 +52,9 @@ PhoneBook.find({}).then((result) => {
     result.forEach(item => {
         console.log(item)
     })
-    mongoose.connection.close();
+    
 })
+
 
 
 //!---------------------------------------------------------------------
