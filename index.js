@@ -1,63 +1,15 @@
-const express = require('express')
-var morgan = require('morgan')
-const cors = require('cors')
-const app = express()
-app.use(cors())
+const mongoose = require('mongoose');
+const express = require('express');
+var morgan = require('morgan');
+const cors = require('cors');
+const app = express();
+app.use(cors());
 //! post
-app.use(express.json())
-app.use(morgan('combined'))
+app.use(express.json());
+app.use(morgan('combined'));
+require('dotenv').config();
+const PhoneBook = require('./models/phonebook');
 
-
-
-//!---------------------------------------------------------------------
-
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema;
-
-
-mongoose.connect("mongodb+srv://atakan:hlTje0R6sqrBznXD@cluster0.k1pwt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
-  .then(result => {
-    console.log('connected to MongoDB')
-  })
-  .catch((error) => {
-    console.log('error connecting to MongoDB:', error.message)
-  })
-
-const PhoneSchema = new Schema({
-    name : String,
-    phone: String
-})
-
-const PhoneBook = mongoose.model("phonebook",PhoneSchema);
-
-PhoneSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-      returnedObject.id = returnedObject._id.toString()
-      delete returnedObject._id
-      delete returnedObject.__v
-    }
-  })
-/*
-const phoneBook = new PhoneBook({
-    name:"Atakan Tek",
-    phone:"0 532 202 8310"
-})
-
-phoneBook.save().then(result => {
-    console.log('phone saved!')
-    mongoose.connection.close()
-  })
-*/
-PhoneBook.find({}).then((result) => {
-    result.forEach(item => {
-        console.log(item)
-    })
-    
-})
-
-
-
-//!---------------------------------------------------------------------
 
 
 let persons = [
@@ -85,19 +37,16 @@ let persons = [
 
 
 //! post
-const generateId = () => {
-    const maxId = persons.length > 0
-                  ? Math.max(...persons.map(i => i.id))
-                  : 0
-    return maxId + 1
-}
-app.post('/api/persons',(request,response) => {
+
+app.post('/api/persons',(request,response,next) => {
     const body = request.body
+
     if(!body.phone || !body.name){
         return response.status(404).json({
             error:'phone or name field is missing'
         })
     }
+    /*
     const nameControl = persons.filter(item => item.name.toUpperCase() !== body.name.toUpperCase())
     console.log(nameControl)
     if((nameControl.length ) === persons.length - 1){
@@ -105,32 +54,53 @@ app.post('/api/persons',(request,response) => {
             error:'The name field that you tried to add already existed.'
         })
     }
-    const person = {
+*/
+    const person = new PhoneBook({
         name:body.name,
-        phone: body.phone,
-        id: generateId()
-    }
-
-    persons = persons.concat(person)
-    response.json(persons)
+        phone: body.phone
+    })
+    person
+    .save()
+    .then((savedPersonPhone) => {
+        return savedPersonPhone.toJSON()
+    })
+    .then((savedAndFormattedPersonPhone) => {
+        response.json(savedAndFormattedPersonPhone)
+    })
+    .catch(error =>next(error))
+    //!Next error handling için kullanıldı.
+    
+      
+      
+   
 })
 
 //!delete by given id
 app.delete('/api/persons/:id',(request,response) => {
-    const targetId = Number(request.params.id)
-    persons = persons.filter(person => person.id !== targetId)
-     response.status(204).end()
+    PhoneBook.findOneAndRemove({_id:request.params.id})
+    .then(item =>{
+        response.json(item)
+    })
+    .catch((error) => {
+        console.log("Error:",error)
+    })
 })
-
+  
 //!get the record by identified id
 app.get('/api/persons/:id',(request,response)=>{
-    const id = Number(request.params.id)
-    const person = persons.find(m => m.id === id)
-    if(person){
-        response.json(person)
-    }else{
-        response.status(404).end()
-    }
+    PhoneBook.findOne({_id:request.params.id})
+    .then(item =>{
+        if(item){
+            response.json(item)
+        }
+        else{
+            response.status(404).end()
+        }
+    })
+    .catch(error => {
+        console.log(error)
+        response.status(400).send({ error: 'malformatted id' })
+      })
 })
 
 //!get all persons
@@ -154,7 +124,21 @@ app.get('/info',(request,response)=>{
     response.json(showData)
 })
 
-const PORT = process.env.PORT || 3001
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
+      } else if (error.name === 'ValidationError') {
+        return response.status(400).json({ error: error.message })
+      }
+  
+    next(error)
+  }
+app.use(errorHandler)
+
+
+const PORT = process.env.PORT;
   app.listen(PORT,()=>{
     console.log(`Server running on port ${PORT}`)
   })
