@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
+const Schema = mongoose.Schema;
 
-const url = process.env.MONGODB_URI
 
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
   .then(result => {
@@ -10,20 +10,21 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFind
     console.log('error connecting to MongoDB:', error.message)
   })
 
-const phoneSchema = new mongoose.Schema({
+const PhoneSchema = new Schema({
     name : String,
     phone: String
 })
 
 
 
-phoneSchema.set('toJSON', {
+PhoneSchema.set('toJSON', {
     transform: (document, returnedObject) => {
       returnedObject.id = returnedObject._id.toString()
       delete returnedObject._id
       delete returnedObject.__v
     }
   })
+  
 /*
 phone.save().then(result => {
     console.log('note saved!')

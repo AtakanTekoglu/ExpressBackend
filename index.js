@@ -1,23 +1,55 @@
-require('dotenv').config()
-const Phone = require('./models/person')
 const express = require('express')
-const app = express()
-
 var morgan = require('morgan')
-
-//!npm install cors ile gelir
-//!same origin policy
 const cors = require('cors')
+const app = express()
 app.use(cors())
-
-
-
-//!In order to access the data easily, we need the help of the express json-parser, that is taken to use with command app.use(express.json()). */
+//! post
 app.use(express.json())
 app.use(morgan('combined'))
 
-//!whenever express gets an HTTP GET request it will first check if the build directory contains a file corresponding to the request's address. If a correct file is found, express will return it.
-app.use(express.static('build'))
+
+
+//!---------------------------------------------------------------------
+
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema;
+
+
+mongoose.connect("mongodb+srv://atakan:hlTje0R6sqrBznXD@cluster0.k1pwt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
+  .then(result => {
+    console.log('connected to MongoDB')
+  })
+  .catch((error) => {
+    console.log('error connecting to MongoDB:', error.message)
+  })
+
+const PhoneSchema = new Schema({
+    name : String,
+    phone: String
+})
+
+const PhoneBook = mongoose.model("phonebook",PhoneSchema);
+/*
+const phoneBook = new PhoneBook({
+    name:"Atakan Tek",
+    phone:"0 532 202 8310"
+})
+
+phoneBook.save().then(result => {
+    console.log('phone saved!')
+    mongoose.connection.close()
+  })
+*/
+PhoneBook.find({}).then((result) => {
+    result.forEach(item => {
+        console.log(item)
+    })
+    mongoose.connection.close();
+})
+
+
+//!---------------------------------------------------------------------
+
 
 let persons = [
       {
@@ -41,7 +73,6 @@ let persons = [
         id: 4
       }
 ]
-
 
 
 //! post
@@ -94,12 +125,14 @@ app.get('/api/persons/:id',(request,response)=>{
 })
 
 //!get all persons
-app.get('/api/persons',(request,response)  =>{
-    Phone.find({}).then(items => {
-        response.json(items)
-      }).catch(error =>
-          console.log(error)
-      )
+app.get('/api/persons',(request,response)=>{
+    PhoneBook.find({})
+    .then((result) => {
+        response.json(result);
+    })
+    .catch((error) => {
+        console.log("Error:",error)
+    })
 })
 
 //!get the length of records
@@ -112,8 +145,6 @@ app.get('/info',(request,response)=>{
     response.json(showData)
 })
 
-//!Now we are using the port defined in environment variable PORT or port 3001 if the environment variable PORT is undefined. 
-//*Heroku configures application port based on the environment variable.
 const PORT = process.env.PORT || 3001
   app.listen(PORT,()=>{
     console.log(`Server running on port ${PORT}`)
