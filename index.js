@@ -1,11 +1,23 @@
+require('dotenv').config()
+const Phone = require('./models/person')
 const express = require('express')
-var morgan = require('morgan')
-const cors = require('cors')
 const app = express()
+
+var morgan = require('morgan')
+
+//!npm install cors ile gelir
+//!same origin policy
+const cors = require('cors')
 app.use(cors())
-//! post
+
+
+
+//!In order to access the data easily, we need the help of the express json-parser, that is taken to use with command app.use(express.json()). */
 app.use(express.json())
 app.use(morgan('combined'))
+
+//!whenever express gets an HTTP GET request it will first check if the build directory contains a file corresponding to the request's address. If a correct file is found, express will return it.
+app.use(express.static('build'))
 
 let persons = [
       {
@@ -29,6 +41,7 @@ let persons = [
         id: 4
       }
 ]
+
 
 
 //! post
@@ -81,8 +94,12 @@ app.get('/api/persons/:id',(request,response)=>{
 })
 
 //!get all persons
-app.get('/api/persons',(request,response)=>{
-    response.json(persons)
+app.get('/api/persons',(request,response)  =>{
+    Phone.find({}).then(items => {
+        response.json(items)
+      }).catch(error =>
+          console.log(error)
+      )
 })
 
 //!get the length of records
@@ -95,6 +112,8 @@ app.get('/info',(request,response)=>{
     response.json(showData)
 })
 
+//!Now we are using the port defined in environment variable PORT or port 3001 if the environment variable PORT is undefined. 
+//*Heroku configures application port based on the environment variable.
 const PORT = process.env.PORT || 3001
   app.listen(PORT,()=>{
     console.log(`Server running on port ${PORT}`)
