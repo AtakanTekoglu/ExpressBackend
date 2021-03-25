@@ -4,7 +4,8 @@ const User = require('../models/user')
 
 //! get all
 phonebookRouter.get('/',async (request,response) => {
-    const result = await PhoneBook.find({})
+    const result = await PhoneBook.find({}).populate('user',{ username: 1, name: 1 })
+    //!Populate'ye parametre olarak verilen 'user' modelin içindeki alanın ismidir.
     response.json(result)
     /*PhoneBook.find({})
     .then((result) => {
@@ -34,7 +35,7 @@ phonebookRouter.get('/:id',(request,response,next) => {
 
 //! post the record by the user
 phonebookRouter.post('/', async (request,response,next) => {
-    console.log(request)
+    console.log(request.body)
     const body = request.body
 
 
@@ -52,9 +53,11 @@ phonebookRouter.post('/', async (request,response,next) => {
         phone: body.phone,
         user:user._id
     })
+    console.log("That person:", person)
     try {
         
         const result = await person.save()
+        console.log(result)
         user.phonebooks = user.phonebooks.concat(result._id)
         await user.save()
         //const savedPersons = await result.toJSON()

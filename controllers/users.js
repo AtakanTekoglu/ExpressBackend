@@ -3,7 +3,8 @@ const usersRouter = require('express').Router()
 const User = require('../models/user')
 
 usersRouter.get('/', async (request, response) => {
-    const users = await User.find({})
+    const users = await User.find({}).populate('phonebooks',{name:1,phone:1})
+    //!Populate'ye parametre olarak verilen 'phonebooks' modelin içindeki alanın ismidir.
     response.json(users)
   })
 

@@ -11,9 +11,10 @@ const PhoneSchema = new mongoose.Schema({
         minlength:11,
         required:true
     },
-    user:{
+    user:{ //*user değişken ismi populate'nin ilk parametresini temsil eder.
       type:mongoose.Schema.Types.ObjectId,
-      ref:'User'
+      ref:'User' //!Bağlantı kurduğu tablonun ismi - Bağlantı kurduğum modelin mongoose.model('User', userSchema) ile belirtilen 1.parametresine bağlanır.
+
     }
 })
 
@@ -25,6 +26,6 @@ PhoneSchema.set('toJSON', {
     }
   })
 
-const PhoneBook = mongoose.model("phonebook",PhoneSchema);
+const PhoneBook = mongoose.model("Phonebook",PhoneSchema);
 
 module.exports = PhoneBook;

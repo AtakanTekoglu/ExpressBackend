@@ -8,10 +8,10 @@ const userSchema = new mongoose.Schema({
     },
   name: String,
   passwordHash: String,
-  phonebooks: [
+  phonebooks: [//*phonebooks değişken ismi populate'nin ilk parametresini temsil eder.
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Phonebook'
+      ref: 'Phonebook' //!Bağlantı kurduğu tablonun ismi - Bağlantı kurduğum modelin mongoose.model("Phonebook",PhoneSchema); ile belirtilen 1.parametresine bağlanır.
     }
   ],
 })
@@ -29,6 +29,6 @@ userSchema.set('toJSON', {
 })
 
 
-const User = mongoose.model('User', userSchema)
+const User = mongoose.model('User', userSchema) //!Tablom
 
 module.exports = User
