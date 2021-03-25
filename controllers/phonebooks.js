@@ -2,14 +2,16 @@ const phonebookRouter = require('express').Router()
 const PhoneBook = require('../models/phonebook');
 
 //! get all
-phonebookRouter.get('/',(request,response) => {
-    PhoneBook.find({})
+phonebookRouter.get('/',async (request,response) => {
+    const result = await PhoneBook.find({})
+    response.json(result)
+    /*PhoneBook.find({})
     .then((result) => {
         response.json(result);
     })
     .catch((error) => {
         console.log("Error:",error)
-    })
+    })*/
 })
 
 //! get the record by identified id
@@ -30,11 +32,11 @@ phonebookRouter.get('/:id',(request,response,next) => {
 } )
 
 //! post the record by the user
-phonebookRouter.post('/',(request,response,next) => {
+phonebookRouter.post('/', async (request,response,next) => {
     const body = request.body
 
     if(!body.phone || !body.name){
-        return response.status(404).json({
+        return response.status(400).json({
             error:'phone or name field is missing'
         })
     }
@@ -43,28 +45,54 @@ phonebookRouter.post('/',(request,response,next) => {
         name:body.name,
         phone: body.phone
     })
+    try {
+        const result = await person.save()
+        const savedPersons = await result.toJSON()
+        response.status(200)
+        response.json(savedPersons)
+        response.end()
+    } catch (exception) {
+        next(exception)
+    }
     
+
+    /*
     person
         .save()
         .then((savedPersonPhone) => {
+
         return savedPersonPhone.toJSON()
             })
         .then((savedAndFormattedPersonPhone) => {
+        response.status(200)
         response.json(savedAndFormattedPersonPhone)
+        response.end()
             })
         .catch(error =>next(error))
         //!Next error handling için kullanıldı.
+        */
 })
 
 //! delete the record by identified id
-phonebookRouter.delete('/:id',(request,response,next) => {
+phonebookRouter.delete('/:id',async (request,response,next) => {
+        
+        
+        try {
+            const result = await PhoneBook.findOneAndRemove({_id:request.params.id})
+            console.log("Result:",result)
+            response.status(204).end()
+        } catch (exception) {
+            next(exception)
+        }
+
+        /*
         PhoneBook.findOneAndRemove({_id:request.params.id})
         .then(item =>{
             response.json(item)
         })
         .catch((error) => {
             console.log("Error:",error)
-        })
+        })*/
 })
 
 module.exports = phonebookRouter
